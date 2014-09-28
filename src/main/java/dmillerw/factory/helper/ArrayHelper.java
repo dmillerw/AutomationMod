@@ -14,4 +14,14 @@ public class ArrayHelper {
         }
         return array;
     }
+
+    public static <T> T[] rotateArray(Class<T> type, T[] array, int size) {
+        T[] ret = (T[]) Array.newInstance(type, size * size);
+        for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < size; ++j) {
+                ret[i + j * size] = array[size - j - 1 + i * size];
+            }
+        }
+        return ret;
+    }
 }

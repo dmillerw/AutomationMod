@@ -27,6 +27,10 @@ public class TileCore extends TileEntity {
 
     }
 
+    public void markForUpdate() {
+        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+    }
+
     @Override
     public void readFromNBT(NBTTagCompound nbtTagCompound) {
         super.readFromNBT(nbtTagCompound);

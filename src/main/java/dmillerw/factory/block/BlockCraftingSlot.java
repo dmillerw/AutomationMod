@@ -4,8 +4,8 @@ import dmillerw.factory.block.prefab.BlockTileCore;
 import dmillerw.factory.tile.TileCraftingSlot;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 
 /**
@@ -18,10 +18,45 @@ public class BlockCraftingSlot extends BlockTileCore {
     }
 
     @Override
-    public boolean onBlockActivated(World p_149727_1_, int p_149727_2_, int p_149727_3_, int p_149727_4_, EntityPlayer p_149727_5_, int p_149727_6_, float p_149727_7_, float p_149727_8_, float p_149727_9_) {
-        if (!p_149727_1_.isRemote) {
-            TileCraftingSlot tileCraftingSlot = (TileCraftingSlot) p_149727_1_.getTileEntity(p_149727_2_, p_149727_3_, p_149727_4_);
-            p_149727_5_.addChatComponentMessage(new ChatComponentText(String.valueOf(tileCraftingSlot.getType())));
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float fx, float fy, float fz) {
+        if (!world.isRemote) {
+            TileCraftingSlot tileCraftingSlot = (TileCraftingSlot) world.getTileEntity(x, y, z);
+            ItemStack held = player.getHeldItem();
+            ItemStack contents = tileCraftingSlot.contents[0];
+
+            if (contents == null && held != null && held.stackSize >= 1) {
+                tileCraftingSlot.contents[0] = held.copy();
+                tileCraftingSlot.contents[0].stackSize = 1;
+                held.stackSize--;
+
+                if (held.stackSize <= 0) {
+                    player.setCurrentItemOrArmor(0, null);
+                }
+            } else if (contents != null) {
+                if (held == null) {
+                    player.setCurrentItemOrArmor(0, contents.copy());
+                    tileCraftingSlot.contents[0] = null;
+                } else {
+                    //TODO Size checks
+                    if (player.isSneaking()) {
+                        tileCraftingSlot.contents[0].stackSize--;
+                        held.stackSize++;
+
+                        if (tileCraftingSlot.contents[0].stackSize <= 0) {
+                            tileCraftingSlot.contents[0] = null;
+                        }
+                    } else {
+                        tileCraftingSlot.contents[0].stackSize++;
+                        held.stackSize--;
+
+                        if (held.stackSize <= 0) {
+                            player.setCurrentItemOrArmor(0, null);
+                        }
+                    }
+                }
+            }
+
+            tileCraftingSlot.markForUpdate();
         }
         return true;
     }
