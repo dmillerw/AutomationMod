@@ -34,23 +34,34 @@ public class BlockCraftingSlot extends BlockTileCore {
                 }
             } else if (contents != null) {
                 if (held == null) {
-                    player.setCurrentItemOrArmor(0, contents.copy());
-                    tileCraftingSlot.contents[0] = null;
+                    ItemStack copy = contents.copy();
+                    copy.stackSize = 1;
+                    player.setCurrentItemOrArmor(0, contents);
+
+                    tileCraftingSlot.contents[0].stackSize--;
+                    if (tileCraftingSlot.contents[0].stackSize <= 0) {
+                        tileCraftingSlot.contents[0] = null;
+                    }
                 } else {
-                    //TODO Size checks
-                    if (player.isSneaking()) {
-                        tileCraftingSlot.contents[0].stackSize--;
-                        held.stackSize++;
+                    if (held.isItemEqual(contents)) {
+                        if (player.isSneaking()) {
+                            if (held.stackSize + 1 <= held.getMaxStackSize()) {
+                                tileCraftingSlot.contents[0].stackSize--;
+                                held.stackSize++;
 
-                        if (tileCraftingSlot.contents[0].stackSize <= 0) {
-                            tileCraftingSlot.contents[0] = null;
-                        }
-                    } else {
-                        tileCraftingSlot.contents[0].stackSize++;
-                        held.stackSize--;
+                                if (tileCraftingSlot.contents[0].stackSize <= 0) {
+                                    tileCraftingSlot.contents[0] = null;
+                                }
+                            }
+                        } else {
+                            if (contents.stackSize <= contents.getMaxStackSize()) {
+                                tileCraftingSlot.contents[0].stackSize++;
+                                held.stackSize--;
 
-                        if (held.stackSize <= 0) {
-                            player.setCurrentItemOrArmor(0, null);
+                                if (held.stackSize <= 0) {
+                                    player.setCurrentItemOrArmor(0, null);
+                                }
+                            }
                         }
                     }
                 }
