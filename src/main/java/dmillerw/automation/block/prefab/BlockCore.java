@@ -9,7 +9,7 @@ import net.minecraft.block.material.Material;
  */
 public class BlockCore extends Block {
 
-    protected BlockCore(Material material) {
+    public BlockCore(Material material) {
         super(material);
 
         setCreativeTab(ModTab.TAB);

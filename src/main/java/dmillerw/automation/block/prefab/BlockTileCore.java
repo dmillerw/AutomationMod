@@ -13,7 +13,7 @@ import net.minecraft.world.World;
  */
 public abstract class BlockTileCore extends BlockContainer {
 
-    protected BlockTileCore(Material material) {
+    public BlockTileCore(Material material) {
         super(material);
 
         setCreativeTab(ModTab.TAB);

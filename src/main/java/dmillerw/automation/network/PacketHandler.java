@@ -2,9 +2,7 @@ package dmillerw.automation.network;
 
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-import cpw.mods.fml.relauncher.Side;
 import dmillerw.automation.lib.ModInfo;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.Packet;
@@ -25,7 +23,7 @@ public class PacketHandler {
     /**
      * This method assumes that the same class is used for both the message and the message handler
      */
-    private static <P extends IMessage & IMessageHandler> void registerMessage(Class<P> clazz, PacketSide side) {
+    /*private static <P extends IMessage & IMessageHandler> void registerMessage(Class<P> clazz, PacketSide side) {
         if (side == PacketSide.CLIENT || side == PacketSide.BOTH) {
             CHANNEL.registerMessage(clazz, clazz, descriminator, Side.CLIENT);
         }
@@ -33,7 +31,7 @@ public class PacketHandler {
             CHANNEL.registerMessage(clazz, clazz, descriminator, Side.SERVER);
         }
         descriminator++;
-    }
+    }*/
 
     public static void sendToServer(IMessage message) {
         CHANNEL.sendToServer(message);
