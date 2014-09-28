@@ -264,7 +264,6 @@ public class TileCraftingSlot extends TileCore implements IInventory {
         return matrix;
     }
 
-
     @Override
     public int getSizeInventory() {
         return 1;
