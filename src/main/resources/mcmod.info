@@ -1,8 +1,8 @@
 [
 {
-  "modid": "AutomationMod",
-  "name": "AutomationMod",
-  "description": "AutomationMod",
+  "modid": "FactoryWorks",
+  "name": "FactoryWorks",
+  "description": "FactoryWorks",
   "version": "${mod_version}",
   "mcversion": "${minecraft_version}",
   "authors": [ "dmillerw" ],
