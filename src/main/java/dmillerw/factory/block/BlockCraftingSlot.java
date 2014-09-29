@@ -1,10 +1,12 @@
 package dmillerw.factory.block;
 
 import dmillerw.factory.block.prefab.BlockTileCore;
+import dmillerw.factory.helper.WorldHelper;
+import dmillerw.factory.lib.ModInfo;
 import dmillerw.factory.tile.TileCraftingSlot;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -18,6 +20,11 @@ import net.minecraftforge.common.util.ForgeDirection;
  */
 public class BlockCraftingSlot extends BlockTileCore {
 
+    public static IIcon top;
+    public static IIcon bottom;
+    public static IIcon[] sides;
+    public static IIcon[] out;
+
     public BlockCraftingSlot() {
         super(Material.iron);
     }
@@ -30,7 +37,7 @@ public class BlockCraftingSlot extends BlockTileCore {
             ItemStack contents = tileCraftingSlot.contents[0];
 
             if (held != null && held.getItem() == Items.stick && side != ForgeDirection.UP.ordinal()) {
-                if (player.isSneaking()) {
+                if (tileCraftingSlot.outputSide == ForgeDirection.getOrientation(side)) {
                     tileCraftingSlot.outputSide = ForgeDirection.UNKNOWN;
                 } else {
                     tileCraftingSlot.outputSide = ForgeDirection.getOrientation(side);
@@ -84,10 +91,25 @@ public class BlockCraftingSlot extends BlockTileCore {
 
     @Override
     public IIcon getIcon(IBlockAccess world, int x, int y, int z, int side) {
+        if (side == 0 || side == 1) return super.getIcon(world, x, y, z, side);
         TileCraftingSlot tileCraftingSlot = (TileCraftingSlot) world.getTileEntity(x, y, z);
-        if (tileCraftingSlot != null && tileCraftingSlot.outputSide != ForgeDirection.UNKNOWN) {
+        WorldHelper.BlockPos blockPos = new WorldHelper.BlockPos(x, y, z);
+        if (tileCraftingSlot != null) {
+            ForgeDirection forgeDirection = ForgeDirection.getOrientation(side);
             if (side == tileCraftingSlot.outputSide.ordinal()) {
-                return Blocks.gold_block.getIcon(0, 0);
+                boolean left = WorldHelper.getOffsetBlock(tileCraftingSlot.getWorldObj(), blockPos, forgeDirection.getRotation(ForgeDirection.UP).getOpposite()) == this;
+                boolean right = WorldHelper.getOffsetBlock(tileCraftingSlot.getWorldObj(), blockPos, forgeDirection.getRotation(ForgeDirection.UP)) == this;
+                if (left && right) return out[2];
+                else if (!left && !right) return out[1];
+                else if (left) return out[0];
+                else if (right) return out[3];
+            } else {
+                boolean left = WorldHelper.getOffsetBlock(tileCraftingSlot.getWorldObj(), blockPos, forgeDirection.getRotation(ForgeDirection.UP).getOpposite()) == this;
+                boolean right = WorldHelper.getOffsetBlock(tileCraftingSlot.getWorldObj(), blockPos, forgeDirection.getRotation(ForgeDirection.UP)) == this;
+                if (left && right) return sides[2];
+                else if (!left && !right) return sides[1];
+                else if (left) return sides[0];
+                else if (right) return sides[3];
             }
         }
         return super.getIcon(world, x, y, z, side);
@@ -95,7 +117,29 @@ public class BlockCraftingSlot extends BlockTileCore {
 
     @Override
     public IIcon getIcon(int side, int meta) {
-        return Blocks.iron_block.getIcon(0, 0);
+        if (side == 0) {
+            return bottom;
+        } else if (side == 1) {
+            return top;
+        } else {
+            return sides[1];
+        }
+    }
+
+    @Override
+    public void registerBlockIcons(IIconRegister iconRegister) {
+        top = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/top"));
+        bottom = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/bottom"));
+        sides = new IIcon[4];
+        sides[0] = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/side_left"));
+        sides[1] = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/side_middle"));
+        sides[2] = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/side_middle_open"));
+        sides[3] = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/side_right"));
+        out = new IIcon[4];
+        out[0] = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/out_left"));
+        out[1] = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/out_middle"));
+        out[2] = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/out_middle_open"));
+        out[3] = iconRegister.registerIcon(ModInfo.prefix("craftingSlot/out_right"));
     }
 
     @Override
