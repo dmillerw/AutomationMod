@@ -1,6 +1,7 @@
-package dmillerw.factory.block.prefab;
+package dmillerw.factory.block;
 
-import dmillerw.factory.block.ModBlocks;
+import dmillerw.factory.block.prefab.BlockTileCore;
+import dmillerw.factory.helper.WorldHelper;
 import dmillerw.factory.tile.TileItemPile;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
@@ -17,10 +18,10 @@ import java.util.List;
  */
 public class BlockItemPile extends BlockTileCore {
 
-    public static void placePile(World world, int x, int y, int z, ItemStack stack) {
-        if (world.isAirBlock(x, y, z)) {
-            world.setBlock(x, y, z, ModBlocks.itemPile);
-            TileItemPile tileItemPile = (TileItemPile) world.getTileEntity(x, y, z);
+    public static void placePile(World world, WorldHelper.BlockPos blockPos, ItemStack stack) {
+        if (world.isAirBlock(blockPos.x, blockPos.y, blockPos.z)) {
+            world.setBlock(blockPos.x, blockPos.y, blockPos.z, ModBlocks.itemPile);
+            TileItemPile tileItemPile = (TileItemPile) world.getTileEntity(blockPos.x, blockPos.y, blockPos.z);
             tileItemPile.setInventorySlotContents(0, stack.copy());
         }
     }

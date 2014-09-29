@@ -1,5 +1,6 @@
 package dmillerw.factory.tile;
 
+import dmillerw.factory.block.BlockItemPile;
 import dmillerw.factory.block.ModBlocks;
 import dmillerw.factory.helper.ArrayHelper;
 import dmillerw.factory.helper.WorldHelper;
@@ -31,6 +32,10 @@ public class TileCraftingSlot extends TileCore implements IInventory {
     @NBTHandler.DescriptionData
     @NBTHandler.ArraySize(1)
     public ItemStack[] contents = new ItemStack[1];
+
+    @NBTHandler.NBTData
+    @NBTHandler.DescriptionData
+    public ForgeDirection outputSide = ForgeDirection.UNKNOWN;
 
     @Override
     public void onNeighborChanged() {
@@ -96,21 +101,28 @@ public class TileCraftingSlot extends TileCore implements IInventory {
 
         for (int x=0; x<size; x++) {
             for (int z=0; z<size; z++) {
-                if (worldObj.getBlock(xCoordinate + x, yCoord, zCoordinate + z) == ModBlocks.craftingSlot) {
-                    for (ForgeDirection forgeDirection : ForgeDirection.VALID_DIRECTIONS) {
-                        TileEntity tileEntity = WorldHelper.getOffsetTileEntity(worldObj, xCoordinate + x, yCoord, zCoordinate + z, forgeDirection);
+                WorldHelper.BlockPos blockPos = new WorldHelper.BlockPos(xCoordinate + x, yCoord, zCoordinate + z);
+                if (WorldHelper.getBlock(worldObj, blockPos) == ModBlocks.craftingSlot) {
+                    TileCraftingSlot tileCraftingSlot = (TileCraftingSlot) WorldHelper.getTileEntity(worldObj, blockPos);
+                    if (tileCraftingSlot.outputSide != ForgeDirection.UNKNOWN) {
+                        TileEntity tileEntity = WorldHelper.getOffsetTileEntity(worldObj, blockPos, tileCraftingSlot.outputSide);
                         if (tileEntity != null && !(tileEntity instanceof TileCraftingSlot) && tileEntity instanceof IInventory) {
                             boolean skip = false;
                             // Special check case for hoppers
                             if (tileEntity instanceof TileEntityHopper) {
                                 ForgeDirection facing = ForgeDirection.getOrientation(tileEntity.getBlockMetadata());
-                                if (WorldHelper.getOffsetBlock(tileEntity.getWorldObj(), tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord, facing) == ModBlocks.craftingSlot) {
+                                if (WorldHelper.getOffsetBlock(tileEntity.getWorldObj(), WorldHelper.BlockPos.fromTileEntity(tileEntity), facing) == ModBlocks.craftingSlot) {
                                     skip = true;
                                 }
                             }
-                            if (!finished && !skip && TileEntityHopper.func_145889_a((IInventory) tileEntity, result, forgeDirection.getOpposite().ordinal()) == null) {
+                            if (!finished && !skip && TileEntityHopper.func_145889_a((IInventory) tileEntity, result, outputSide.getOpposite().ordinal()) == null) {
                                 finished = true;
                                 break;
+                            }
+                        } else {
+                            if (WorldHelper.isOffsetAir(worldObj, blockPos, tileCraftingSlot.outputSide)) {
+                                BlockItemPile.placePile(worldObj, WorldHelper.getOffsetPosition(blockPos, tileCraftingSlot.outputSide), result.copy());
+                                finished = true;
                             }
                         }
                     }
@@ -140,7 +152,7 @@ public class TileCraftingSlot extends TileCore implements IInventory {
     public byte getType() {
         int temp = 0;
         for (ForgeDirection forgeDirection : SIDES) {
-            Block block = WorldHelper.getOffsetBlock(worldObj, xCoord, yCoord, zCoord, forgeDirection);
+            Block block = WorldHelper.getOffsetBlock(worldObj, WorldHelper.BlockPos.fromTileEntity(this), forgeDirection);
             if (block == ModBlocks.craftingSlot) {
                 temp++;
             }
@@ -172,9 +184,9 @@ public class TileCraftingSlot extends TileCore implements IInventory {
         if (type == CORNER) {
             // If we're a corner, we can easily determine if we're a 2x2 or a 3x3
             for (ForgeDirection forgeDirection : SIDES) {
-                Block block = WorldHelper.getOffsetBlock(worldObj, xCoord, yCoord, zCoord, forgeDirection);
+                Block block = WorldHelper.getOffsetBlock(worldObj, WorldHelper.BlockPos.fromTileEntity(this), forgeDirection);
                 if (block == ModBlocks.craftingSlot) {
-                    TileCraftingSlot tileCraftingSlot = (TileCraftingSlot) WorldHelper.getOffsetTileEntity(worldObj, xCoord, yCoord, zCoord, forgeDirection);
+                    TileCraftingSlot tileCraftingSlot = (TileCraftingSlot) WorldHelper.getOffsetTileEntity(worldObj, WorldHelper.BlockPos.fromTileEntity(this), forgeDirection);
                     byte offsetType = tileCraftingSlot.getType();
 
                     if (offsetType == CORNER) {
@@ -191,9 +203,9 @@ public class TileCraftingSlot extends TileCore implements IInventory {
             boolean foundCenter = false;
 
             for (ForgeDirection forgeDirection : SIDES) {
-                Block block = WorldHelper.getOffsetBlock(worldObj, xCoord, yCoord, zCoord, forgeDirection);
+                Block block = WorldHelper.getOffsetBlock(worldObj, WorldHelper.BlockPos.fromTileEntity(this), forgeDirection);
                 if (block == ModBlocks.craftingSlot) {
-                    TileCraftingSlot tileCraftingSlot = (TileCraftingSlot) WorldHelper.getOffsetTileEntity(worldObj, xCoord, yCoord, zCoord, forgeDirection);
+                    TileCraftingSlot tileCraftingSlot = (TileCraftingSlot) WorldHelper.getOffsetTileEntity(worldObj, WorldHelper.BlockPos.fromTileEntity(this), forgeDirection);
                     byte offsetType = tileCraftingSlot.getType();
 
                     if (offsetType == CORNER) {

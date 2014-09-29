@@ -1,7 +1,6 @@
 package dmillerw.factory.block;
 
 import cpw.mods.fml.common.registry.GameRegistry;
-import dmillerw.factory.block.prefab.BlockItemPile;
 import dmillerw.factory.lib.ModInfo;
 import dmillerw.factory.tile.TileCraftingSlot;
 import dmillerw.factory.tile.TileItemPile;

@@ -4,9 +4,14 @@ import dmillerw.factory.block.prefab.BlockTileCore;
 import dmillerw.factory.tile.TileCraftingSlot;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.IIcon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 /**
  * @author dmillerw
@@ -24,6 +29,16 @@ public class BlockCraftingSlot extends BlockTileCore {
             ItemStack held = player.getHeldItem();
             ItemStack contents = tileCraftingSlot.contents[0];
 
+            if (held != null && held.getItem() == Items.stick && side != ForgeDirection.UP.ordinal()) {
+                if (player.isSneaking()) {
+                    tileCraftingSlot.outputSide = ForgeDirection.UNKNOWN;
+                } else {
+                    tileCraftingSlot.outputSide = ForgeDirection.getOrientation(side);
+                }
+                tileCraftingSlot.markForUpdate();
+                return true;
+            }
+
             if (contents == null && held != null && held.stackSize >= 1) {
                 tileCraftingSlot.contents[0] = held.copy();
                 tileCraftingSlot.contents[0].stackSize = 1;
@@ -35,13 +50,8 @@ public class BlockCraftingSlot extends BlockTileCore {
             } else if (contents != null) {
                 if (held == null) {
                     ItemStack copy = contents.copy();
-                    copy.stackSize = 1;
-                    player.setCurrentItemOrArmor(0, contents);
-
-                    tileCraftingSlot.contents[0].stackSize--;
-                    if (tileCraftingSlot.contents[0].stackSize <= 0) {
-                        tileCraftingSlot.contents[0] = null;
-                    }
+                    player.setCurrentItemOrArmor(0, copy);
+                    tileCraftingSlot.contents[0] = null;
                 } else {
                     if (held.isItemEqual(contents)) {
                         if (player.isSneaking()) {
@@ -70,6 +80,22 @@ public class BlockCraftingSlot extends BlockTileCore {
             tileCraftingSlot.markForUpdate();
         }
         return true;
+    }
+
+    @Override
+    public IIcon getIcon(IBlockAccess world, int x, int y, int z, int side) {
+        TileCraftingSlot tileCraftingSlot = (TileCraftingSlot) world.getTileEntity(x, y, z);
+        if (tileCraftingSlot != null && tileCraftingSlot.outputSide != ForgeDirection.UNKNOWN) {
+            if (side == tileCraftingSlot.outputSide.ordinal()) {
+                return Blocks.gold_block.getIcon(0, 0);
+            }
+        }
+        return super.getIcon(world, x, y, z, side);
+    }
+
+    @Override
+    public IIcon getIcon(int side, int meta) {
+        return Blocks.iron_block.getIcon(0, 0);
     }
 
     @Override
