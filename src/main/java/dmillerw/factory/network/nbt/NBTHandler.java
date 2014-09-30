@@ -56,13 +56,7 @@ public class NBTHandler {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD})
     public static @interface NBTData {
-
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.FIELD})
-    public static @interface DescriptionData {
-
+        boolean value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -71,7 +65,7 @@ public class NBTHandler {
         int value();
     }
 
-    public static void writeObject(String name, Object object, NBTTagCompound nbt) {
+    public static void writeObject(String name, Object object, NBTTagCompound nbt, boolean description) {
         Class<?> type = object.getClass();
 
         if (type.isEnum()) {
@@ -91,7 +85,7 @@ public class NBTHandler {
                 if (array[i] != null) {
                     NBTTagCompound tag = new NBTTagCompound();
                     tag.setInteger("index", i);
-                    NBTHandler.writeObject(name + "_" + i, array[i], tag);
+                    NBTHandler.writeObject(name + "_" + i, array[i], tag, description);
                     list.appendTag(tag);
                 }
             }
@@ -102,7 +96,11 @@ public class NBTHandler {
             boolean serialized = false;
             for (AbstractSerializer<?> serializer : AbstractSerializer.serializerList) {
                 if (serializer.canHandle(type)) {
-                    serializer.serialize(name, object, nbt);
+                    if (description) {
+                        serializer.serializeDescription(name, object, nbt);
+                    } else {
+                        serializer.serialize(name, object, nbt);
+                    }
                     serialized = true;
                     break;
                 }
@@ -132,7 +130,7 @@ public class NBTHandler {
         }
     }
 
-    public static Object readObject(String name, Class<?> type, NBTTagCompound nbt) {
+    public static Object readObject(String name, Class<?> type, NBTTagCompound nbt, boolean description) {
         if (type.isEnum()) {
             Enum<?> object = null;
             try {
@@ -154,7 +152,7 @@ public class NBTHandler {
                 for (int i = 0; i < list.tagCount(); i++) {
                     NBTTagCompound tag = list.getCompoundTagAt(i);
                     int index = tag.getInteger("index");
-                    array[index] = NBTHandler.readObject(name + "_" + index, type, tag);
+                    array[index] = NBTHandler.readObject(name + "_" + index, type, tag, description);
                 }
             }
 
@@ -162,7 +160,11 @@ public class NBTHandler {
         } else {
             for (AbstractSerializer<?> serializer : AbstractSerializer.serializerList) {
                 if (serializer.canHandle(type)) {
-                    return serializer.deserialize(name, nbt);
+                    if (description) {
+                        return serializer.deserializeDescription(name, nbt);
+                    } else {
+                        return serializer.deserialize(name, nbt);
+                    }
                 }
             }
 
@@ -245,7 +247,7 @@ public class NBTHandler {
     public NBTHandler addField(Field field) {
         if (NBTHandler.validField(field)) {
             fields.put(field.getName(), field);
-            if (field.getAnnotation(DescriptionData.class) != null) {
+            if (field.getAnnotation(NBTData.class).value()) {
                 descriptionFields.put(field.getName(), field);
             }
         }
@@ -266,29 +268,29 @@ public class NBTHandler {
 
     public void writeAllToNBT(NBTTagCompound nbt) {
         for (String str : fields.keySet()) {
-            writeField(str, nbt);
+            writeField(str, nbt, false);
         }
     }
 
-    public void writeSelectedToNBT(String[] names, NBTTagCompound nbt) {
-        for (String str : names) {
-            writeField(str, nbt);
+    public void writeDescriptionToNBT(NBTTagCompound nbt) {
+        for (String str : getDescriptionFields()) {
+            writeField(str, nbt, true);
         }
     }
 
-    public void readFromNBT(NBTTagCompound nbt) {
+    public void readAllFromNBT(NBTTagCompound nbt) {
         for (String str : fields.keySet()) {
-            readField(str, nbt);
+            readField(str, nbt, false);
         }
     }
 
-    public void readSelectedFromNBT(String[] names, NBTTagCompound nbt) {
-        for (String str : names) {
-            readField(str, nbt);
+    public void readDescriptionFromNBT(NBTTagCompound nbt) {
+        for (String str : getDescriptionFields()) {
+            readField(str, nbt, true);
         }
     }
 
-    private void writeField(String name, NBTTagCompound nbt) {
+    private void writeField(String name, NBTTagCompound nbt, boolean description) {
         Field field = fields.get(name);
         if (field == null) {
             LogHelper.error("Tried to write field " + name + " from " + parent.getClass() + " but it doesn't exist!");
@@ -302,9 +304,9 @@ public class NBTHandler {
 
             if (field.getType().isArray() && field.getAnnotation(ArraySize.class) != null) {
                 Object array = Arrays.copyOf(ArrayHelper.handleGenericArray(field.get(parent), field.getType().getComponentType()), field.getAnnotation(ArraySize.class).value());
-                NBTHandler.writeObject(name, array, nbt);
+                NBTHandler.writeObject(name, array, nbt, description);
             } else {
-                NBTHandler.writeObject(name, field.get(parent), nbt);
+                NBTHandler.writeObject(name, field.get(parent), nbt, description);
             }
 
         } catch (IllegalAccessException ex) {
@@ -313,7 +315,7 @@ public class NBTHandler {
         }
     }
 
-    private void readField(String name, NBTTagCompound nbt) {
+    private void readField(String name, NBTTagCompound nbt, boolean description) {
         Field field = fields.get(name);
         if (field == null) {
             LogHelper.error("Tried to read field " + name + " from " + parent.getClass() + " but it doesn't exist!");
@@ -342,9 +344,9 @@ public class NBTHandler {
             }
 
             if (field.getType().isArray()) {
-                field.set(parent, ArrayHelper.handleGenericArray(NBTHandler.readObject(name, field.getType(), nbt), field.getType().getComponentType()));
+                field.set(parent, ArrayHelper.handleGenericArray(NBTHandler.readObject(name, field.getType(), nbt, description), field.getType().getComponentType()));
             } else {
-                field.set(parent, NBTHandler.readObject(name, field.getType(), nbt));
+                field.set(parent, NBTHandler.readObject(name, field.getType(), nbt, description));
             }
         } catch (IllegalAccessException ex) {
             ex.printStackTrace();

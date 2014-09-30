@@ -15,6 +15,8 @@ public abstract class AbstractSerializer<T> {
     static {
         serializerList.add(new FluidStackSerializer());
         serializerList.add(new ItemStackSerializer());
+        serializerList.add(new BlockSerializer());
+        serializerList.add(new NBTSerializer());
     }
 
     public abstract boolean canHandle(Class<?> fieldType);
@@ -22,4 +24,12 @@ public abstract class AbstractSerializer<T> {
     public abstract void serialize(String name, Object object, NBTTagCompound nbt);
 
     public abstract T deserialize(String name, NBTTagCompound nbt);
+
+    public void serializeDescription(String name, Object object, NBTTagCompound nbtTagCompound) {
+        serialize(name, object, nbtTagCompound);
+    }
+
+    public T deserializeDescription(String name, NBTTagCompound nbtTagCompound) {
+        return deserialize(name, nbtTagCompound);
+    }
 }

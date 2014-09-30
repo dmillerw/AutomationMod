@@ -28,13 +28,11 @@ public class TileCraftingSlot extends TileCore implements IInventory {
     public static final byte SIDE = 1;
     public static final byte CENTER = 2;
 
-    @NBTHandler.NBTData
-    @NBTHandler.DescriptionData
+    @NBTHandler.NBTData(true)
     @NBTHandler.ArraySize(1)
     public ItemStack[] contents = new ItemStack[1];
 
-    @NBTHandler.NBTData
-    @NBTHandler.DescriptionData
+    @NBTHandler.NBTData(true)
     public ForgeDirection outputSide = ForgeDirection.UNKNOWN;
 
     @Override

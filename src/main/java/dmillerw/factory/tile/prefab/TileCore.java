@@ -34,7 +34,7 @@ public class TileCore extends TileEntity {
     @Override
     public void readFromNBT(NBTTagCompound nbtTagCompound) {
         super.readFromNBT(nbtTagCompound);
-        nbtHandler.readFromNBT(nbtTagCompound);
+        nbtHandler.readAllFromNBT(nbtTagCompound);
     }
 
     @Override
@@ -46,13 +46,13 @@ public class TileCore extends TileEntity {
     @Override
     public Packet getDescriptionPacket() {
         NBTTagCompound nbt = new NBTTagCompound();
-        nbtHandler.writeSelectedToNBT(nbtHandler.getDescriptionFields(), nbt);
+        nbtHandler.writeDescriptionToNBT(nbt);
         return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, nbt);
     }
 
     @Override
     public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
-        nbtHandler.readFromNBT(pkt.func_148857_g());
+        nbtHandler.readDescriptionFromNBT(pkt.func_148857_g());
         worldObj.markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord);
     }
 }

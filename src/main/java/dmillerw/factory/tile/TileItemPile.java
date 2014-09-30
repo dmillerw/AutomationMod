@@ -11,8 +11,7 @@ import net.minecraft.item.ItemStack;
  */
 public class TileItemPile extends TileCore implements IInventory {
 
-    @NBTHandler.NBTData
-    @NBTHandler.DescriptionData
+    @NBTHandler.NBTData(true)
     @NBTHandler.ArraySize(1)
     public ItemStack[] contents = new ItemStack[1];
 
